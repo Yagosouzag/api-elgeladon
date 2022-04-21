@@ -1,44 +1,84 @@
 const paletasService = require('../services/paleta.service');
 
-const findAllPaletasController = async (req, res) => {
-  const allPaletas = await paletasService.findAllPaletasService();
-  if (allPaletas.length == 0) {
+const findAllPaletasController = (req, res) => {
+  const paletas = paletasService.findAllPaletasService();
+
+  if (paletas.length == 0) {
     return res
       .status(404)
       .send({ message: 'Não existe nenhuma paleta cadastrada!' });
   }
-  res.send(allPaletas);
+
+  res.send(paletas);
 };
 
-const findByIdPaletaController = async (req, res) => {
-  const idParam = req.params.id;
-  const chosenPaleta = await paletasService.findByIdPaletaService(idParam);
-  if (!chosenPaleta) {
+const findByIdPaletaController = (req, res) => {
+  const parametroId = Number(req.params.id);
+
+  if (!parametroId) {
+    return res.status(400).send({ message: 'Id inválido!' });
+  }
+
+  const escolhaPaleta = paletasService.findByIdPaletaService(parametroId);
+
+  if (!escolhaPaleta) {
     return res.status(404).send({ message: 'Paleta não encontrada!' });
   }
-  res.send(chosenPaleta);
+
+  res.send(escolhaPaleta);
 };
 
-const createPaletaController = async (req, res) => {
+const createPaletaController = (req, res) => {
   const paleta = req.body;
-  const newPaleta = await paletasService.createPaletaService(paleta);
+
+  if (
+    !paleta ||
+    !paleta.sabor ||
+    !paleta.descricao ||
+    !paleta.foto ||
+    !paleta.preco
+  ) {
+    return res
+      .status(400)
+      .send({ message: 'Envie todos os campos da paleta!' });
+  }
+
+  const newPaleta = paletasService.createPaletaService(paleta);
   res.status(201).send(newPaleta);
 };
 
-const updatePaletaController = async (req, res) => {
-  const idParam = req.params.id;
-  const editPaleta = req.body;
-  const updatedPaleta = await paletasService.updatePaletaService(
-    idParam,
-    editPaleta,
-  );
+const updatePaletaController = (req, res) => {
+  const idParam = Number(req.params.id);
+
+  if (!idParam) {
+    return res.status(400).send({ message: 'Id inválido!' });
+  }
+  const paletaEdit = req.body;
+
+  if (
+    !paletaEdit ||
+    !paletaEdit.sabor ||
+    !paletaEdit.descricao ||
+    !paletaEdit.foto ||
+    !paletaEdit.preco
+  ) {
+    return res
+      .status(400)
+      .send({ message: 'Envie todos os campos da paleta!' });
+  }
+
+  const updatedPaleta = paletasService.updatePaletaService(idParam, paletaEdit);
   res.send(updatedPaleta);
 };
 
-const deletePaletaController = async (req, res) => {
-  const idParam = req.params.id;
-  await paletasService.deletePaletaService(idParam);
-  res.send({ message: 'Paleta deletada com sucesso!' });
+const deletePaletaController = (req, res) => {
+  const idParam = Number(req.params.id);
+  if (!idParam) {
+    return res.status(400).send({ message: 'Id inválido!' });
+  }
+  paletasService.deletePaletaService(idParam);
+ 
+  res.send({ message: 'Paleta foi deletada com sucesso!' });
 };
 
 module.exports = {
